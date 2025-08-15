@@ -3,31 +3,38 @@
 #include "../core/event_queue.h"
 #include "../core/input.h"
 #include "assets.h"
+#include "scene.h"
 #include <raylib.h>
 
-static void build_room(Scene *s, const ModelAsset *floor, const ModelAsset *wall,
-                       int w, int h, Vector3 tileScale)
-{
-    for (int z = 0; z < h; ++z) {
-        for (int x = 0; x < w; ++x) {
-            Vector3 pos = { (float)x - 2, 0.0f, (float)z - 3 };
-            scene_add(s, floor, pos, tileScale, (Vector3){0,1,0}, 0.0f, WHITE);
-        }
-    }
-   
+static void build_room(Scene *s, const ModelAsset *floor, const ModelAsset *wall, const ModelAsset *tree, int w, int h, Vector3 tileScale) {
+  Vector3 rotAxis = {0, 1, 0};
+  float defaulRotAngleDeg = 0.0f;
+
+  float Z = (float)h / 2;
+  float X = (float)w / 2.25f;
+
+  for (int z = 0; z < h; ++z) {
     for (int x = 0; x < w; ++x) {
-        Vector3 left_wall_pos = { (float)x - 2, 0.0f, (float)-3 };
-        scene_add(s, wall, left_wall_pos, tileScale, (Vector3){0,1,0}, 0.0f, WHITE);
-
-        Vector3 right_wall_pos = { (float)x - 2, 0.0f, (float)h - 3.1f };
-        scene_add(s, wall, right_wall_pos, tileScale, (Vector3){0,1,0}, 0.0f, WHITE);
+      Vector3 pos = { (float)x - X, 0.0f, (float)z - Z};
+      scene_add(s, floor, pos, tileScale, rotAxis, 0.0f, WHITE);
     }
+  }
 
+  for (int x = 0; x < w; ++x) {
+    Vector3 leftWallPos = { (float)x - X, 0.0f, (float)-Z };
+    scene_add(s, wall, leftWallPos, tileScale, (Vector3){0,1,0}, 0.0f, WHITE);
 
-    for (int z = 0; z < h; ++z) {
-        Vector3 back_wall_pos = { (float)-3, 0.0f, (float)z - 3.0f };
-        scene_add(s, wall, back_wall_pos,  tileScale, (Vector3){0,1,0}, 90.0f, WHITE);
-    }
+    Vector3 rightWallPos = { (float)x - X, 0.0f, (float)h - Z - 0.1f };
+    scene_add(s, wall, rightWallPos, tileScale, (Vector3){0,1,0}, 0.0f, WHITE);
+  }
+
+  for (int z = 0; z < h; ++z) {
+    Vector3 backWallPos = { (float)-(X + 1), 0.0f, (float)z - Z };
+    scene_add(s, wall, backWallPos,  tileScale, (Vector3){0,1,0}, 90.0f, WHITE);
+  }
+
+  Vector3 treePos = {-1, 0, 1};
+  scene_add(s, tree, treePos, tileScale, rotAxis, defaulRotAngleDeg, WHITE);
 }
 
 bool game_init(Game* g) {
@@ -51,29 +58,18 @@ bool game_init(Game* g) {
 
   scene_reset(&g->scene);
   Vector3 tileScale = (Vector3){1.0f, 1.0f, 1.0f};
-  build_room(&g->scene, &g->floor, &g->wall, 6, 6, tileScale);
+  build_room(&g->scene, &g->floor, &g->wall, &g->tree, 18, 18, tileScale);
+ 
+  // lighting
+  const float ambient[4] = {0.15f, 0.15f, 0.18f, 1.0f};
 
+  if (!lighting_init(&g->lights, ambient, (Vector3){-0.4f,-1.0f,-0.3f}, WHITE)) {
+    return false;
+  }
 
-  // Lightning
-  g->lighting = LoadShader("shaders/lighting.vs", "shaders/lighting.fs");
-
-  g->locViewPos = GetShaderLocation(g->lighting, "viewPos");
-  g->locAmbient = GetShaderLocation(g->lighting, "ambient");
-
-  float ambient[4] = { 0.15f, 0.15f, 0.18f, 1.0f };
-  SetShaderValue(g->lighting, g->locAmbient, ambient, SHADER_UNIFORM_VEC4);
-
-  for (int i = 0; i < g->floor.model.materialCount; ++i)
-      g->floor.model.materials[i].shader = g->lighting;
-  for (int i = 0; i < g->wall.model.materialCount; ++i)
-      g->wall.model.materials[i].shader = g->lighting;
-
-  g->light0 = CreateLight(LIGHT_DIRECTIONAL,
-                          (Vector3){ 0.0f, 0.0f, 0.0f },   // position (unused for directional)
-                          (Vector3){ -0.4f, -1.0f, -0.3f },// direction (x,y,z)
-                          WHITE,                            // color
-                          g->lighting);                     // shader to update
-
+  lighting_apply_to_model(&g->lights, &g->floor.model, (Color){210,180,140,255});
+  lighting_apply_to_model(&g->lights, &g->wall.model, (Color){222,184,135,255});
+  lighting_apply_to_model(&g->lights, &g->tree.model, (Color){222,184,135,255});
 
   return true;
 }
@@ -106,7 +102,7 @@ void game_update(Game* g, float dt) {
 
       case EVENT_ACTION:
         if (e.action.id == ACTION_JUMP && e.action.pressed) {
-          TraceLog(LOG_INFO, "Action: JUMP!");
+          TraceLog(LOG_INFO, "Action: Fly up!! or something..");
         }
         break;
 
@@ -115,15 +111,13 @@ void game_update(Game* g, float dt) {
   }
 
   UpdateCamera(&g->camera, CAMERA_FREE);
-  SetShaderValue(g->lighting, g->locViewPos, &g->camera.position, SHADER_UNIFORM_VEC3);
-
-  UpdateLightValues(g->lighting, g->light0);
+  lighting_update(&g->lights, &g->camera);
 }
 void game_shutdown(Game* g) {
   unload_model_asset(&g->floor);
   unload_model_asset(&g->wall);
   unload_model_asset(&g->tree);
   unload_atlas(g->atlas);
-  UnloadShader(g->lighting);
+  lighting_shutdown(&g->lights);
 }
 

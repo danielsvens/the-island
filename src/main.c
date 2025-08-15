@@ -8,9 +8,6 @@
 #define WIN_HEIGHT  960
 #define WIN_TITLE   "The Island"
 
-#define RLIGHTS_IMPLEMENTATION
-#include "game/rlights.h"
-
 int main(void) {
   SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_HIGHDPI);
   InitWindow(WIN_WIDTH, WIN_HEIGHT, WIN_TITLE);

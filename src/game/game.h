@@ -3,7 +3,7 @@
 #include "scene.h"
 #include <raylib.h>
 #include <stdbool.h>
-#include "rlights.h"
+#include "lighting.h"
 
 typedef struct {
   Texture2D atlas;
@@ -15,10 +15,7 @@ typedef struct {
   ModelAsset floorGen;
   ModelAsset wallGen;
 
-  Shader lighting;
-  Light light0;
-  int locViewPos;
-  int locAmbient;
+  Lighting lights;
 
   Scene scene;
 
