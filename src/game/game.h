@@ -1,17 +1,30 @@
 #pragma once
+#include "assets.h"
+#include "scene.h"
 #include <raylib.h>
 #include <stdbool.h>
+#include "rlights.h"
 
 typedef struct {
-  Model   model, buildingBox;
-  Texture texture;
+  Texture2D atlas;
 
-  Vector3 scale;
-  Vector3 position;
+  ModelAsset floor;
+  ModelAsset wall;
+  ModelAsset tree;
 
-  Camera  camera;
+  ModelAsset floorGen;
+  ModelAsset wallGen;
 
-  bool    should_quit;
+  Shader lighting;
+  Light light0;
+  int locViewPos;
+  int locAmbient;
+
+  Scene scene;
+
+  Camera camera;
+
+  bool should_quit;
 } Game;
 
 bool game_init(Game* g);

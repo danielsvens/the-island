@@ -4,9 +4,12 @@
 #include "render/render.h"
 #include "core/event_queue.h"
 
-#define WIN_WIDTH   800
-#define WIN_HEIGHT  600
+#define WIN_WIDTH   1280
+#define WIN_HEIGHT  960
 #define WIN_TITLE   "The Island"
+
+#define RLIGHTS_IMPLEMENTATION
+#include "game/rlights.h"
 
 int main(void) {
   SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_HIGHDPI);
@@ -20,8 +23,8 @@ int main(void) {
   Game g = {0};
   if (!game_init(&g)) return 1;
 
-  TraceLog(LOG_INFO, "Model has %d meshes", g.model.meshCount);
-  TraceLog(LOG_INFO, "Model has %d materials", g.model.materialCount);
+  TraceLog(LOG_INFO, "Model has %d meshes", g.floor.model.meshCount);
+  TraceLog(LOG_INFO, "Model has %d materials", g.floor.model.materialCount);
 
   while (!WindowShouldClose()) {
     float dt = GetFrameTime();
