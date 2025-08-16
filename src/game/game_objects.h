@@ -1,11 +1,13 @@
 #pragma once
 #include <raylib.h>
 #include "assets.h"
+#include "../ai/animal.h"
 
 typedef enum {
     OBJECT_STATIC,
     OBJECT_BALL,
     OBJECT_TREE,
+    OBJECT_ANIMAL,
 } ObjectType;
 
 typedef struct {
@@ -24,7 +26,7 @@ typedef struct {
     float height;
 } TreeData;
 
-typedef struct {
+typedef struct GameObject {
     int id;
     ObjectType type;
     Vector3 position;
@@ -38,12 +40,13 @@ typedef struct {
     union {
         BallData ball;
         TreeData tree;
+        Animal animal;
     } data;
 } GameObject;
 
 #define MAX_OBJECTS 500
 
-typedef struct {
+typedef struct GameWorld {
     GameObject objects[MAX_OBJECTS];
     int object_count;
     int next_id;
@@ -61,8 +64,8 @@ int create_ball(GameWorld *world, Vector3 position, ModelAsset *model,
 int create_tree(GameWorld *world, Vector3 position, ModelAsset *model,
                      float sway_speed, float sway_amount);
 int create_static_object(GameWorld *world, Vector3 position, ModelAsset *model);
+int create_animal(GameWorld *world, Vector3 position, ModelAsset *model, float max_speed);
 
-// Update systems
 void update_physics(GameWorld *world, float dt);
 void update_trees(GameWorld *world, float dt);
 void render_objects(const GameWorld *world);

@@ -1,5 +1,6 @@
 #include "game_objects.h"
 #include <raylib.h>
+#include <raymath.h>
 #include <string.h>
 #include "math.h"
 
@@ -97,31 +98,140 @@ int create_static_object(GameWorld *world, Vector3 position, ModelAsset *model) 
     return id;
 }
 
+int create_animal(GameWorld *world, Vector3 position, ModelAsset *model, float max_speed) {
+    int id = world_create_object(world, OBJECT_ANIMAL);
+    GameObject *obj = world_get_object(world, id);
+    if (!obj) return 0;
+    
+    obj->position = position;
+    obj->model = model;
+    
+    // Initialize the animal AI
+    animal_init(&obj->data.animal, position, max_speed);
+    
+    return id;
+}
+
+static void handle_ball_collision(GameObject *ball1, GameObject *ball2) {
+    BallData *b1 = &ball1->data.ball;
+    BallData *b2 = &ball2->data.ball;
+    
+    TraceLog(LOG_INFO, "Ball collision detected between ball %d and ball %d", ball1->id, ball2->id);
+    
+    Vector3 collision_normal = Vector3Normalize(Vector3Subtract(ball2->position, ball1->position));
+    Vector3 relative_velocity = Vector3Subtract(b2->velocity, b1->velocity);
+    float velocity_along_normal = Vector3DotProduct(relative_velocity, collision_normal);
+    
+    if (velocity_along_normal > 0) return; // Objects separating
+    
+    float restitution = (b1->bounce_factor + b2->bounce_factor) * 0.5f;
+    float impulse_scalar = -(1 + restitution) * velocity_along_normal;
+    impulse_scalar /= (1/b1->mass + 1/b2->mass);
+    
+    Vector3 impulse = Vector3Scale(collision_normal, impulse_scalar);
+    
+    b1->velocity = Vector3Subtract(b1->velocity, Vector3Scale(impulse, 1/b1->mass));
+    b2->velocity = Vector3Add(b2->velocity, Vector3Scale(impulse, 1/b2->mass));
+    
+    // Separate balls to avoid overlap
+    float overlap = (b1->radius + b2->radius) - Vector3Distance(ball1->position, ball2->position);
+    if (overlap > 0) {
+        Vector3 separation = Vector3Scale(collision_normal, overlap * 0.5f);
+        ball1->position = Vector3Subtract(ball1->position, separation);
+        ball2->position = Vector3Add(ball2->position, separation);
+    }
+}
+
+static void handle_ball_static_collision(GameObject *ball, GameObject *static_obj) {
+    BallData *ball_data = &ball->data.ball;
+
+    BoundingBox ball_bbox = {
+        .min = {ball->position.x - ball_data->radius, ball->position.y - ball_data->radius, ball->position.z - ball_data->radius},
+        .max = {ball->position.x + ball_data->radius, ball->position.y + ball_data->radius, ball->position.z + ball_data->radius}
+    };
+    
+    BoundingBox static_bbox = GetModelBoundingBox(static_obj->model->model);
+    static_bbox.min = Vector3Add(static_bbox.min, static_obj->position);
+    static_bbox.max = Vector3Add(static_bbox.max, static_obj->position);
+    
+    if (CheckCollisionBoxes(ball_bbox, static_bbox)) {
+        // Simple bounce - reverse velocity components based on collision surface
+        Vector3 ball_center = ball->position;
+        Vector3 static_center = Vector3Scale(Vector3Add(static_bbox.min, static_bbox.max), 0.5f);
+        Vector3 collision_normal = Vector3Normalize(Vector3Subtract(ball_center, static_center));
+        
+        // Reflect velocity
+        float dot = Vector3DotProduct(ball_data->velocity, collision_normal);
+        ball_data->velocity = Vector3Subtract(ball_data->velocity, Vector3Scale(collision_normal, 2.0f * dot));
+        ball_data->velocity = Vector3Scale(ball_data->velocity, ball_data->bounce_factor);
+        
+        // Push ball out of collision
+        float penetration = ball_data->radius - Vector3Distance(ball_center, static_center);
+        if (penetration > 0) {
+            ball->position = Vector3Add(ball->position, Vector3Scale(collision_normal, penetration));
+        }
+    }
+}
+
 void update_physics(GameWorld *world, float dt) {
     const float gravity = -9.81f;
     const float ground_y = 0.0f;
     
+    // First pass: Apply forces and move objects
     for (int i = 0; i < world->object_count; i++) {
         GameObject *obj = &world->objects[i];
-        if (!obj->active || obj->type != OBJECT_BALL) continue;
-        
-        BallData *ball = &obj->data.ball;
-        
-        // Apply gravity
-        if (ball->use_gravity) {
-            ball->velocity.y += gravity * dt;
+        if (!obj->active) continue;
+
+        switch (obj->type) {
+            case OBJECT_BALL:
+                BallData *ball = &obj->data.ball;
+                
+                if (ball->use_gravity) {
+                    ball->velocity.y += gravity * dt;
+                }
+
+                obj->position.x += ball->velocity.x * dt;
+                obj->position.y += ball->velocity.y * dt;
+                obj->position.z += ball->velocity.z * dt;
+
+                // Ground collision
+                if (obj->position.y - ball->radius <= ground_y) {
+                    obj->position.y = ground_y + ball->radius;
+                    ball->velocity.y = -ball->velocity.y * ball->bounce_factor;
+                    
+                    ball->velocity.x *= (1.0f - ball->friction * dt);
+                    ball->velocity.z *= (1.0f - ball->friction * dt);
+                }
+
+                break;
+
+            case OBJECT_ANIMAL:
+                animal_update(&obj->data.animal, dt, world);
+                obj->position = obj->data.animal.pos;
+                break;
         }
-
-        obj->position.x += ball->velocity.x * dt;
-        obj->position.y += ball->velocity.y * dt;
-        obj->position.z += ball->velocity.z * dt;
-
-        if (obj->position.y - ball->radius <= ground_y) {
-            obj->position.y = ground_y + ball->radius;
-            ball->velocity.y = -ball->velocity.y * ball->bounce_factor;
+    }
+    
+    // Second pass: Handle collisions between balls and with static objects
+    for (int i = 0; i < world->object_count; i++) {
+        GameObject *obj1 = &world->objects[i];
+        if (!obj1->active || obj1->type != OBJECT_BALL) continue;
+        
+        for (int j = i + 1; j < world->object_count; j++) {
+            GameObject *obj2 = &world->objects[j];
+            if (!obj2->active) continue;
             
-            ball->velocity.x *= (1.0f - ball->friction * dt);
-            ball->velocity.z *= (1.0f - ball->friction * dt);
+            if (obj2->type == OBJECT_BALL) {
+                // Ball-to-ball collision
+                float distance = Vector3Distance(obj1->position, obj2->position);
+                float min_distance = obj1->data.ball.radius + obj2->data.ball.radius;
+                
+                if (distance < min_distance) {
+                    handle_ball_collision(obj1, obj2);
+                }
+            } else if (obj2->type == OBJECT_STATIC || obj2->type == OBJECT_TREE) {
+                handle_ball_static_collision(obj1, obj2);
+            }
         }
     }
 }

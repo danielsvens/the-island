@@ -65,6 +65,14 @@ bool game_init(Game *g) {
 
   Vector3 ball_pos = {5, 1, 1};
   create_ball(&g->world, ball_pos, &g->ball,  0.5f, 1.0f, 0.7f, 0.95f);
+  
+  // Create some wandering animals
+  Vector3 animal_pos1 = {-3, 0.5f, 2};
+  Vector3 animal_pos2 = {2, 0.5f, -4};
+  Vector3 animal_pos3 = {-5, 0.5f, -2};
+  create_animal(&g->world, animal_pos1, &g->ball, 2.0f);
+  create_animal(&g->world, animal_pos2, &g->ball, 1.5f);
+  create_animal(&g->world, animal_pos3, &g->ball, 2.5f);
  
   // lighting
   const float ambient[4] = {0.15f, 0.15f, 0.18f, 1.0f};
@@ -111,6 +119,16 @@ void game_update(Game *g, float dt) {
           TraceLog(LOG_INFO, "Action: Fly up!! at tick %llu", e.tick);
         }
         break;
+
+      case EVENT_AI_STATE_CHANGE: {
+        const char* state_names[] = {"IDLE", "WANDERING", "TURNING", "AVOIDING_OBSTACLE"};
+        TraceLog(LOG_INFO, "AI State Change: Animal %p - %s -> %s at tick %llu", 
+                 e.ai_state_change.animal_ptr,
+                 state_names[e.ai_state_change.old_state],
+                 state_names[e.ai_state_change.new_state],
+                 e.tick);
+        break;
+      }
 
       default: break;
     }

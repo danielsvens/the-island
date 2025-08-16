@@ -20,6 +20,7 @@ typedef enum {
   EVENT_MOUSE_WHEEL,
 
   EVENT_ACTION,
+  EVENT_AI_STATE_CHANGE,
 } EventType;
 
 typedef enum {
@@ -30,7 +31,7 @@ typedef enum {
 
 typedef struct {
   int key;          // raylib KEY_*
-  bool repeat;      // true if OS key repeat
+  bool repeat;
   bool alt, ctrl, shift;
 } KeyEvent;
 
@@ -58,8 +59,14 @@ typedef struct {
 } ActionEvent;
 
 typedef struct {
+  void* animal_ptr;
+  int old_state;
+  int new_state;
+} AIStateChangeEvent;
+
+typedef struct {
   EventType type;
-  uint64_t  tick;        // tick number when event was generated
+  uint64_t  tick;
   union {
     KeyEvent          key;
     MouseButtonEvent  mouse_button;
@@ -67,6 +74,7 @@ typedef struct {
     MouseWheelEvent   mouse_wheel;
     WindowResizeEvent window;
     ActionEvent       action;
+    AIStateChangeEvent ai_state_change;
   };
 } Event;
 
@@ -77,11 +85,9 @@ void  flush_events(void);
 int   events_count(void);
 int   events_capacity(void);
 
-// Tick management
-void     set_current_tick(uint64_t tick);
+void set_current_tick(uint64_t tick);
 uint64_t get_current_tick(void);
-void     increment_tick(void);
+void increment_tick(void);
 
-// Convenience function to create events with current tick
-Event    make_event(EventType type);
+Event make_event(EventType type);
 
