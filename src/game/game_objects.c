@@ -146,6 +146,6 @@ void render_objects(const GameWorld *world) {
         const GameObject *obj = &world->objects[i];
         if (!obj->active || !obj->model) continue;
 
-        DrawModelEx(obj->model->model, obj->position, obj->rotation, obj->rotationAxis, obj->scale, obj->tint);
+        DrawModelEx(obj->model->model, obj->position, obj->rotation, obj->rotation_axis, obj->scale, obj->tint);
     }
 }

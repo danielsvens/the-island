@@ -6,9 +6,9 @@
 #include "scene.h"
 #include <raylib.h>
 
-static void build_room(Scene *s, const ModelAsset *floor, const ModelAsset *wall, const ModelAsset *tree, int w, int h, Vector3 tileScale) {
-  Vector3 rotAxis = {0, 1, 0};
-  float defaulRotAngleDeg = 0.0f;
+static void build_room(Scene *s, const ModelAsset *floor, const ModelAsset *wall, const ModelAsset *tree, int w, int h, Vector3 tile_scale) {
+  Vector3 rot_axis = {0, 1, 0};
+  float default_rot_angle_deg = 0.0f;
 
   float Z = (float)h / 2;
   float X = (float)w / 2.25f;
@@ -16,25 +16,25 @@ static void build_room(Scene *s, const ModelAsset *floor, const ModelAsset *wall
   for (int z = 0; z < h; ++z) {
     for (int x = 0; x < w; ++x) {
       Vector3 pos = { (float)x - X, 0.0f, (float)z - Z};
-      scene_add(s, floor, pos, tileScale, rotAxis, 0.0f, WHITE);
+      scene_add(s, floor, pos, tile_scale, rot_axis, 0.0f, WHITE);
     }
   }
 
   for (int x = 0; x < w; ++x) {
-    Vector3 leftWallPos = { (float)x - X, 0.0f, (float)-Z };
-    scene_add(s, wall, leftWallPos, tileScale, (Vector3){0,1,0}, 0.0f, WHITE);
+    Vector3 left_wall_pos = { (float)x - X, 0.0f, (float)-Z };
+    scene_add(s, wall, left_wall_pos, tile_scale, (Vector3){0,1,0}, 0.0f, WHITE);
 
-    Vector3 rightWallPos = { (float)x - X, 0.0f, (float)h - Z - 0.1f };
-    scene_add(s, wall, rightWallPos, tileScale, (Vector3){0,1,0}, 0.0f, WHITE);
+    Vector3 right_wall_pos = { (float)x - X, 0.0f, (float)h - Z - 0.1f };
+    scene_add(s, wall, right_wall_pos, tile_scale, (Vector3){0,1,0}, 0.0f, WHITE);
   }
 
   for (int z = 0; z < h; ++z) {
-    Vector3 backWallPos = { (float)-(X + 1), 0.0f, (float)z - Z };
-    scene_add(s, wall, backWallPos,  tileScale, (Vector3){0,1,0}, 90.0f, WHITE);
+    Vector3 back_wall_pos = { (float)-(X + 1), 0.0f, (float)z - Z };
+    scene_add(s, wall, back_wall_pos,  tile_scale, (Vector3){0,1,0}, 90.0f, WHITE);
   }
 
-  Vector3 treePos = {-1, 0, 1};
-  scene_add(s, tree, treePos, tileScale, rotAxis, defaulRotAngleDeg, WHITE);
+  Vector3 tree_pos = {-1, 0, 1};
+  scene_add(s, tree, tree_pos, tile_scale, rot_axis, default_rot_angle_deg, WHITE);
 }
 
 bool game_init(Game *g) {
@@ -60,8 +60,8 @@ bool game_init(Game *g) {
   scene_reset(&g->scene);
   world_init(&g->world);
 
-  Vector3 tileScale = (Vector3){1.0f, 1.0f, 1.0f};
-  build_room(&g->scene, &g->floor, &g->wall, &g->tree, 18, 18, tileScale);
+  Vector3 tile_scale = (Vector3){1.0f, 1.0f, 1.0f};
+  build_room(&g->scene, &g->floor, &g->wall, &g->tree, 18, 18, tile_scale);
 
   Vector3 ball_pos = {5, 1, 1};
   create_ball(&g->world, ball_pos, &g->ball,  0.5f, 1.0f, 0.7f, 0.95f);

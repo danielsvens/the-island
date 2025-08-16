@@ -14,15 +14,15 @@ Texture2D load_atlas(const char *path) {
 }
 void unload_atlas(Texture2D tex) { UnloadTexture(tex); }
 
-bool load_model_with_atlas(ModelAsset *out, const char *objPath, Texture2D atlas) {
-    out->model = LoadModel(objPath);
+bool load_model_with_atlas(ModelAsset *out, const char *obj_path, Texture2D atlas) {
+    out->model = LoadModel(obj_path);
     if (out->model.meshCount == 0) return false;
     //apply_atlas_to_all_materials(&out->model, atlas);
     return true;
 }
 
-bool load_glb_model(ModelAsset *out, const char *objPath) {
-  out->model = LoadModel(objPath);
+bool load_glb_model(ModelAsset *out, const char *obj_path) {
+  out->model = LoadModel(obj_path);
   return out->model.meshCount != 0;
 }
 

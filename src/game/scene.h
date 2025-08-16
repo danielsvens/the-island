@@ -9,8 +9,8 @@ typedef struct {
     const ModelAsset *asset;
     Vector3 pos;
     Vector3 scale;
-    Vector3 rotAxis;
-    float rotAngleDeg;
+    Vector3 rot_axis;
+    float rot_angle_deg;
     Color tint;
 } Instance;
 
@@ -20,6 +20,6 @@ typedef struct {
 } Scene;
 
 void scene_reset(Scene *s);
-int scene_add(Scene *s, const ModelAsset *asset, Vector3 pos, Vector3 scale, Vector3 rotAxis, float rotAngleDeg, Color tint);
+int scene_add(Scene *s, const ModelAsset *asset, Vector3 pos, Vector3 scale, Vector3 rot_axis, float rot_angle_deg, Color tint);
 void render_scene(const Scene *s);
 

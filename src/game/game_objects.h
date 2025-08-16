@@ -29,7 +29,7 @@ typedef struct {
     ObjectType type;
     Vector3 position;
     Vector3 rotation;
-    float rotationAxis;
+    float rotation_axis;
     Vector3 scale;
     ModelAsset *model;
     Color tint;
