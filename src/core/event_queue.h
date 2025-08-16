@@ -59,7 +59,7 @@ typedef struct {
 
 typedef struct {
   EventType type;
-  double    time;
+  uint64_t  tick;        // tick number when event was generated
   union {
     KeyEvent          key;
     MouseButtonEvent  mouse_button;
@@ -76,4 +76,12 @@ int   poll_event(Event *out);      // 1 if got one
 void  flush_events(void);
 int   events_count(void);
 int   events_capacity(void);
+
+// Tick management
+void     set_current_tick(uint64_t tick);
+uint64_t get_current_tick(void);
+void     increment_tick(void);
+
+// Convenience function to create events with current tick
+Event    make_event(EventType type);
 

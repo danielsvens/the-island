@@ -26,13 +26,13 @@ bool load_glb_model(ModelAsset *out, const char *objPath) {
   return out->model.meshCount != 0;
 }
 
-static void set_color(Model* m, Color c) {
+static void set_color(Model *m, Color c) {
     for (int i = 0; i < m->materialCount; ++i) {
       m->materials[i].maps[MATERIAL_MAP_ALBEDO].color = c;
     }
 }
 
-bool make_plane_asset(ModelAsset* out, Color color) {
+bool make_plane_asset(ModelAsset *out, Color color) {
     Mesh mesh = GenMeshPlane(1.0f, 1.0f, 1, 1);
     out->model = LoadModelFromMesh(mesh);
     if (out->model.meshCount == 0) return false;
@@ -40,7 +40,7 @@ bool make_plane_asset(ModelAsset* out, Color color) {
     return true;
 }
 
-bool make_wall_asset(ModelAsset* out, float thickness, float height, Color color) {
+bool make_wall_asset(ModelAsset *out, float thickness, float height, Color color) {
     Mesh mesh = GenMeshCube(1.0f, 2.0f, 0.2f);
     out->model = LoadModelFromMesh(mesh);
     if (out->model.meshCount == 0) return false;

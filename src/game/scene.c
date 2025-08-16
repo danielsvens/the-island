@@ -9,3 +9,14 @@ int scene_add(Scene *s, const ModelAsset *asset, Vector3 pos, Vector3 scale,
     return s->count - 1;
 }
 
+void render_scene(const Scene *s) {
+    for (int i = 0; i < s->count; ++i) {
+        const Instance *it = &s->inst[i];
+        DrawModelEx(it->asset->model, it->pos, it->rotAxis, it->rotAngleDeg, it->scale, it->tint);
+        //DrawModelWiresEx(it->asset->model, it->pos, it->rotAxis, it->rotAngleDeg, it->scale, BLACK);
+
+        // draw grid
+        //DrawBoundingBox(get_transformed_bbox(g->model, g->position, g->scale), RED);
+    }
+}
+

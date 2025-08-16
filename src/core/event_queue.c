@@ -10,8 +10,11 @@ _Static_assert((EVENT_QUEUE_CAP & MASK) == 0, "EVENT_QUEUE_CAP must be power of 
 static Event buf[EVENT_QUEUE_CAP];
 static int head = 0, tail = 0;
 static int dropped = 0;
+static uint64_t current_tick = 0;
 
-void init_event_queue(void) { head = tail = dropped = 0; }
+void init_event_queue(void) { 
+  head = tail = dropped = current_tick = 0;
+}
 
 static int size(void) { return head - tail; }
 
@@ -34,4 +37,25 @@ int poll_event(Event *out) {
 void flush_events(void) { tail = head; }
 int  events_count(void) { return size(); }
 int  events_capacity(void) { return EVENT_QUEUE_CAP; }
+
+// Tick management functions
+void set_current_tick(uint64_t tick) {
+  current_tick = tick;
+}
+
+uint64_t get_current_tick(void) {
+  return current_tick;
+}
+
+void increment_tick(void) {
+  current_tick++;
+}
+
+// Convenience function to create events with current tick
+Event make_event(EventType type) {
+  Event e = {0};
+  e.type = type;
+  e.tick = current_tick;
+  return e;
+}
 

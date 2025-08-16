@@ -21,4 +21,5 @@ typedef struct {
 
 void scene_reset(Scene *s);
 int scene_add(Scene *s, const ModelAsset *asset, Vector3 pos, Vector3 scale, Vector3 rotAxis, float rotAngleDeg, Color tint);
+void render_scene(const Scene *s);
 

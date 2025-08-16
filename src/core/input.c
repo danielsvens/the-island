@@ -7,11 +7,11 @@ static int last_mouse_x = 0, last_mouse_y = 0;
 static void push(const Event *e) { push_event(e); }
 
 void input_collect_events(void) {
-  const double t = GetTime();
+  const uint64_t tick = get_current_tick();
 
   for (int k = KEY_SPACE; k <= KEY_K; ++k) {
     if (IsKeyPressed(k)) {
-      Event e = {.type = EVENT_KEY_DOWN, .time = t};
+      Event e = {.type = EVENT_KEY_DOWN, .tick = tick};
       e.key.key = k;
       e.key.repeat = IsKeyPressedRepeat(k);
       e.key.alt   = IsKeyDown(KEY_LEFT_ALT)   || IsKeyDown(KEY_RIGHT_ALT);
@@ -20,7 +20,7 @@ void input_collect_events(void) {
       push(&e);
     }
     if (IsKeyReleased(k)) {
-      Event e = {.type = EVENT_KEY_UP, .time = t};
+      Event e = {.type = EVENT_KEY_UP, .tick = tick};
       e.key.key = k;
       e.key.repeat = false;
       e.key.alt   = IsKeyDown(KEY_LEFT_ALT)   || IsKeyDown(KEY_RIGHT_ALT);
@@ -31,20 +31,20 @@ void input_collect_events(void) {
   }
 
   if (IsKeyPressed(KEY_ESCAPE)) {
-    Event q = {.type = EVENT_QUIT, .time = t};
+    Event q = {.type = EVENT_QUIT, .tick = tick};
     push(&q);
   }
 
   for (int b = MOUSE_BUTTON_LEFT; b <= MOUSE_BUTTON_MIDDLE; ++b) {
     if (IsMouseButtonPressed(b)) {
       Vector2 p = GetMousePosition();
-      Event e = {.type = EVENT_MOUSE_DOWN, .time = t};
+      Event e = {.type = EVENT_MOUSE_DOWN, .tick = tick};
       e.mouse_button.button = b; e.mouse_button.x = (int)p.x; e.mouse_button.y = (int)p.y;
       push(&e);
     }
     if (IsMouseButtonReleased(b)) {
       Vector2 p = GetMousePosition();
-      Event e = {.type = EVENT_MOUSE_UP, .time = t};
+      Event e = {.type = EVENT_MOUSE_UP, .tick = tick};
       e.mouse_button.button = b; e.mouse_button.x = (int)p.x; e.mouse_button.y = (int)p.y;
       push(&e);
     }
@@ -54,7 +54,7 @@ void input_collect_events(void) {
   int x = (int)p.x, y = (int)p.y;
   int dx = x - last_mouse_x, dy = y - last_mouse_y;
   if (dx || dy) {
-    Event e = {.type = EVENT_MOUSE_MOVE, .time = t};
+    Event e = {.type = EVENT_MOUSE_MOVE, .tick = tick};
     e.mouse_move.x = x; e.mouse_move.y = y; e.mouse_move.dx = dx; e.mouse_move.dy = dy;
     push(&e);
     last_mouse_x = x; last_mouse_y = y;
@@ -62,7 +62,7 @@ void input_collect_events(void) {
 
   Vector2 w = GetMouseWheelMoveV();
   if (w.x != 0 || w.y != 0) {
-    Event e = {.type = EVENT_MOUSE_WHEEL, .time = t};
+    Event e = {.type = EVENT_MOUSE_WHEEL, .tick = tick};
     e.mouse_wheel.x = w.x; e.mouse_wheel.y = w.y;
     push(&e);
   }
@@ -71,7 +71,7 @@ void input_collect_events(void) {
   int w_now = GetScreenWidth(), h_now = GetScreenHeight();
   if (w_now != last_w || h_now != last_h) {
     if (last_w != 0) {
-      Event e = {.type = EVENT_WINDOW_RESIZED, .time = t};
+      Event e = {.type = EVENT_WINDOW_RESIZED, .tick = tick};
       e.window.width = w_now; e.window.height = h_now;
       push(&e);
     }
@@ -79,12 +79,12 @@ void input_collect_events(void) {
   }
 
   if (IsKeyPressed(KEY_SPACE)) {
-    Event a = {.type = EVENT_ACTION, .time = t};
+    Event a = {.type = EVENT_ACTION, .tick = tick};
     a.action.id = ACTION_JUMP; a.action.pressed = true;
     push(&a);
   }
   if (IsKeyReleased(KEY_SPACE)) {
-    Event a = {.type = EVENT_ACTION, .time = t};
+    Event a = {.type = EVENT_ACTION, .tick = tick};
     a.action.id = ACTION_JUMP; a.action.pressed = false;
     push(&a);
   }
