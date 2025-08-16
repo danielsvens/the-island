@@ -67,5 +67,6 @@ int create_static_object(GameWorld *world, Vector3 position, ModelAsset *model);
 int create_animal(GameWorld *world, Vector3 position, ModelAsset *model, float max_speed);
 
 void update_physics(GameWorld *world, float dt);
+void check_collisions(GameWorld *world);
 void update_trees(GameWorld *world, float dt);
 void render_objects(const GameWorld *world);

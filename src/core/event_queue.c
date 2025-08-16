@@ -38,7 +38,6 @@ void flush_events(void) { tail = head; }
 int  events_count(void) { return size(); }
 int  events_capacity(void) { return EVENT_QUEUE_CAP; }
 
-// Tick management functions
 void set_current_tick(uint64_t tick) {
   current_tick = tick;
 }
@@ -51,7 +50,7 @@ void increment_tick(void) {
   current_tick++;
 }
 
-// Convenience function to create events with current tick
+
 Event make_event(EventType type) {
   Event e = {0};
   e.type = type;

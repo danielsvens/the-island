@@ -3,6 +3,7 @@
 
 typedef struct {
     Model model;
+    BoundingBox local_bbox;  // Cached bounding box in model space
 } ModelAsset;
 
 Texture2D load_atlas(const char *path);
@@ -17,4 +18,5 @@ bool make_wall_asset(ModelAsset *out, float thickness, float height, Color color
 void unload_model_asset(ModelAsset *m);
 
 BoundingBox get_transformed_bbox(Model model, Vector3 pos, Vector3 scale);
+BoundingBox get_transformed_bbox_from_asset(const ModelAsset *asset, Vector3 pos, Vector3 scale);
 

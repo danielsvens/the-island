@@ -79,8 +79,8 @@ typedef struct {
 } Event;
 
 void  init_event_queue(void);
-void  push_event(const Event *e);  // copies
-int   poll_event(Event *out);      // 1 if got one
+void  push_event(const Event *e);
+int   poll_event(Event *out);
 void  flush_events(void);
 int   events_count(void);
 int   events_capacity(void);

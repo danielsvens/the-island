@@ -137,6 +137,7 @@ void game_update(Game *g, float dt) {
   UpdateCamera(&g->camera, CAMERA_FREE);
   lighting_update(&g->lights, &g->camera);
   update_physics(&g->world, dt);
+  check_collisions(&g->world);
 }
 void game_shutdown(Game *g) {
   unload_model_asset(&g->floor);

@@ -17,7 +17,7 @@ void animal_init(Animal *animal, Vector3 position, float max_speed) {
     animal->turn_speed = 2.0f;
     animal->detection_radius = 3.0f;
     
-    animal->state = AI_STATE_WANDERING;  // Start wandering immediately
+    animal->state = AI_STATE_WANDERING;
     animal->state_timer = 0.0f;
     animal->idle_duration = 0.5f + (float)rand() / RAND_MAX * 1.0f; // 0.5-1.5 seconds
     animal->wander_duration = 3.0f + (float)rand() / RAND_MAX * 5.0f; // 3-8 seconds
@@ -53,7 +53,6 @@ void animal_change_state(Animal *animal, AIState new_state) {
             animal->wander_duration = 2.0f + (float)rand() / RAND_MAX * 6.0f;
             break;
         case AI_STATE_TURNING:
-            // Pick a new random direction
             animal->target_direction = Vector3Normalize((Vector3){
                 (float)rand() / RAND_MAX * 2.0f - 1.0f,
                 0,
@@ -66,41 +65,31 @@ void animal_change_state(Animal *animal, AIState new_state) {
 }
 
 Vector3 animal_get_wander_force(Animal *animal) {
-    // Update wander angle with small random changes
     animal->wander_angle += ((float)rand() / RAND_MAX * 2.0f - 1.0f) * animal->wander_angle_change;
-    
-    // Calculate target point on wander circle
+
     Vector3 circle_center = Vector3Add(animal->pos, Vector3Scale(Vector3Normalize(animal->vel), 2.0f));
     Vector3 displacement = {
         cosf(animal->wander_angle) * animal->wander_radius,
         0,
         sinf(animal->wander_angle) * animal->wander_radius
     };
+
     Vector3 target = Vector3Add(circle_center, displacement);
-    
-    // Return steering force toward target
     Vector3 desired_velocity = Vector3Scale(Vector3Normalize(Vector3Subtract(target, animal->pos)), animal->max_speed);
     return Vector3Subtract(desired_velocity, animal->vel);
 }
 
 void animal_handle_ball_collision(Animal *animal, GameObject *ball_obj) {
-    TraceLog(LOG_INFO, "Animal-Ball collision: Animal at (%.1f,%.1f,%.1f) hits ball %d at (%.1f,%.1f,%.1f)", 
-             animal->pos.x, animal->pos.y, animal->pos.z, 
-             ball_obj->id, ball_obj->position.x, ball_obj->position.y, ball_obj->position.z);
-    
-    // Calculate collision direction (from ball center to animal center)
     Vector3 collision_dir = Vector3Subtract(animal->pos, ball_obj->position);
-    collision_dir.y = 0; // Keep collision horizontal
+    collision_dir.y = 0;
     collision_dir = Vector3Normalize(collision_dir);
+
+    float impact_force = Vector3Length(animal->vel) * 2.0f;
+    Vector3 ball_impulse = Vector3Scale(collision_dir, -impact_force);
     
-    // Apply force to the ball based on animal's velocity and mass
-    float impact_force = Vector3Length(animal->vel) * 2.0f; // Animal "mass" factor
-    Vector3 ball_impulse = Vector3Scale(collision_dir, -impact_force); // Negative because we push ball away
-    
-    // Add the impulse to ball's velocity
+
     ball_obj->data.ball.velocity = Vector3Add(ball_obj->data.ball.velocity, ball_impulse);
-    
-    // Animal bounces back slightly
+
     Vector3 animal_bounce = Vector3Scale(collision_dir, impact_force * 0.3f);
     animal->vel = Vector3Add(animal->vel, animal_bounce);
 }
@@ -118,8 +107,7 @@ bool animal_check_collision(const Animal *animal, Vector3 position, const GameWo
         .min = { position.x - animal->radius, position.y - animal->radius, position.z - animal->radius },
         .max = { position.x + animal->radius, position.y + animal->radius, position.z + animal->radius }
     };
-    
-    // Check collision with other game objects
+
     for (int i = 0; i < world->object_count; i++) {
         const GameObject *obj = &world->objects[i];
         if (!obj->active) continue;
@@ -131,7 +119,7 @@ bool animal_check_collision(const Animal *animal, Vector3 position, const GameWo
 
         BoundingBox obj_bbox;
         if (obj->model && obj->model->model.meshCount > 0) {
-            obj_bbox = get_transformed_bbox(obj->model->model, obj->position, obj->scale);
+            obj_bbox = get_transformed_bbox_from_asset(obj->model, obj->position, obj->scale);
         } else {
             float default_size = 0.5f;
             obj_bbox = (BoundingBox){
@@ -152,13 +140,10 @@ Vector3 animal_get_avoid_force(Animal *animal, const GameWorld *world) {
     Vector3 avoid_force = {0, 0, 0};
     Vector3 ahead = Vector3Add(animal->pos, Vector3Scale(Vector3Normalize(animal->vel), animal->avoid_distance));
     
-    // Check for obstacles ahead
     if (animal_check_collision(animal, ahead, world)) {
-        // Find avoidance direction
         Vector3 right = Vector3CrossProduct(animal->vel, (Vector3){0, 1, 0});
         Vector3 left = Vector3Scale(right, -1.0f);
-        
-        // Test both directions and pick the clearer one
+
         Vector3 right_test = Vector3Add(animal->pos, Vector3Scale(Vector3Normalize(right), animal->avoid_distance));
         Vector3 left_test = Vector3Add(animal->pos, Vector3Scale(Vector3Normalize(left), animal->avoid_distance));
         
@@ -170,11 +155,9 @@ Vector3 animal_get_avoid_force(Animal *animal, const GameWorld *world) {
         } else if (left_clear && !right_clear) {
             avoid_force = Vector3Scale(Vector3Normalize(left), animal->max_speed * 2.0f);
         } else if (right_clear && left_clear) {
-            // Both clear, pick randomly
             Vector3 chosen = (rand() % 2) ? right : left;
             avoid_force = Vector3Scale(Vector3Normalize(chosen), animal->max_speed);
         } else {
-            // Both blocked, turn around
             avoid_force = Vector3Scale(Vector3Normalize(animal->vel), -animal->max_speed);
         }
     }
@@ -189,7 +172,6 @@ void animal_update(Animal *animal, float dt, const GameWorld *world) {
     
     switch (animal->state) {
         case AI_STATE_IDLE:
-            // Gradually slow down
             animal->vel = Vector3Scale(animal->vel, 0.95f);
             
             if (animal->state_timer >= animal->idle_duration) {
@@ -208,7 +190,6 @@ void animal_update(Animal *animal, float dt, const GameWorld *world) {
             }
             
             if (animal->state_timer >= animal->wander_duration) {
-                // Random chance to idle or keep wandering
                 if ((float)rand() / RAND_MAX < 0.3f) {
                     animal_change_state(animal, AI_STATE_IDLE);
                 } else {
@@ -218,11 +199,9 @@ void animal_update(Animal *animal, float dt, const GameWorld *world) {
             break;
             
         case AI_STATE_TURNING:
-            // Steer toward target direction
             Vector3 desired_vel = Vector3Scale(animal->target_direction, animal->max_speed * 0.5f);
             steering_force = Vector3Subtract(desired_vel, animal->vel);
-            
-            // Check if we're facing the right direction
+
             Vector3 current_dir = Vector3Normalize(animal->vel);
             float dot = Vector3DotProduct(current_dir, animal->target_direction);
             
@@ -233,8 +212,7 @@ void animal_update(Animal *animal, float dt, const GameWorld *world) {
             
         case AI_STATE_AVOIDING_OBSTACLE:
             steering_force = animal->avoid_force;
-            
-            // Check if we can go back to wandering
+
             Vector3 test_pos = Vector3Add(animal->pos, Vector3Scale(Vector3Normalize(animal->vel), 1.0f));
             if (!animal_check_collision(animal, test_pos, world) || animal->state_timer > 3.0f) {
                 animal_change_state(animal, AI_STATE_WANDERING);
@@ -242,22 +220,18 @@ void animal_update(Animal *animal, float dt, const GameWorld *world) {
             break;
     }
     
-    // Apply steering force
     animal->vel = Vector3Add(animal->vel, Vector3Scale(steering_force, dt));
     
-    // Limit speed
     float speed = Vector3Length(animal->vel);
     if (speed > animal->max_speed) {
         animal->vel = Vector3Scale(Vector3Normalize(animal->vel), animal->max_speed);
     }
     
-    // Update position
     Vector3 new_pos = Vector3Add(animal->pos, Vector3Scale(animal->vel, dt));
     
-    // Check for ball collisions and handle them specially
     bool blocked = false;
     for (int i = 0; i < world->object_count; i++) {
-        GameObject *obj = &((GameWorld*)world)->objects[i];  // Cast away const for modification
+        GameObject *obj = &((GameWorld*)world)->objects[i];
         if (!obj->active) continue;
         
         // Skip self
@@ -265,15 +239,11 @@ void animal_update(Animal *animal, float dt, const GameWorld *world) {
             continue;
         }
 
-        //get_transformed_bbox(*(Model*) animal->model, new_pos, &animal->scale);
-        
-        // Create bounding box for animal at new position
         BoundingBox animal_bbox = {
             .min = { new_pos.x - animal->radius, new_pos.y - animal->radius, new_pos.z - animal->radius },
             .max = { new_pos.x + animal->radius, new_pos.y + animal->radius, new_pos.z + animal->radius }
         };
         
-        // Get object bounding box
         BoundingBox obj_bbox;
         if (obj->model && obj->model->model.meshCount > 0) {
             obj_bbox = get_transformed_bbox(obj->model->model, obj->position, obj->scale);
@@ -304,7 +274,6 @@ void animal_update(Animal *animal, float dt, const GameWorld *world) {
         animal->vel = Vector3Scale(animal->vel, -0.5f);
         animal_change_state(animal, AI_STATE_AVOIDING_OBSTACLE);
     }
-    
-    // Keep Y position at ground level
+
     animal->pos.y = 0.5f;
 }
