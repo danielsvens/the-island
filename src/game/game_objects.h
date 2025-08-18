@@ -31,7 +31,6 @@ typedef struct GameObject {
     ObjectType type;
     Vector3 position;
     Vector3 rotation;
-    float rotation_axis;
     Vector3 scale;
     ModelAsset *model;
     Color tint;
@@ -55,9 +54,11 @@ typedef struct GameWorld {
 // World management
 void world_init(GameWorld *world);
 void world_shutdown(GameWorld *world);
+void world_destroy_object(GameWorld *world, int id);
+
 int world_create_object(GameWorld *world, ObjectType type);
 GameObject *world_get_object(GameWorld *world, int id);
-void world_destroy_object(GameWorld *world, int id);
+
 
 int create_ball(GameWorld *world, Vector3 position, ModelAsset *model, 
                      float radius, float mass, float bounce, float friction);
@@ -67,6 +68,7 @@ int create_static_object(GameWorld *world, Vector3 position, ModelAsset *model);
 int create_animal(GameWorld *world, Vector3 position, ModelAsset *model, float max_speed);
 
 void update_physics(GameWorld *world, float dt);
-void check_collisions(GameWorld *world);
 void update_trees(GameWorld *world, float dt);
+
+void check_collisions(GameWorld *world);
 void render_objects(const GameWorld *world);

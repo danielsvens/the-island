@@ -53,6 +53,7 @@ bool game_init(Game *g) {
   if (!load_glb_model(&g->wall, "Glb/wall.glb")) return false;
   if (!load_glb_model(&g->tree, "Glb/tree.glb")) return false;
   if (!load_glb_model(&g->ball, "Glb/ball.glb")) return false;
+  if (!load_glb_model(&g->fox, "Glb/fox.glb")) return false;
 
   make_plane_asset(&g->floor_gen, (Color){210, 180, 140, 255});
   make_wall_asset(&g->wall_gen, 0.1f, 2.5f, (Color){222, 184, 135, 255});
@@ -65,15 +66,15 @@ bool game_init(Game *g) {
 
   Vector3 ball_pos = {5, 1, 1};
   create_ball(&g->world, ball_pos, &g->ball,  0.5f, 1.0f, 0.7f, 0.95f);
-  
+
   // Create some wandering animals
   Vector3 animal_pos1 = {-3, 0.5f, 2};
   Vector3 animal_pos2 = {2, 0.5f, -4};
   Vector3 animal_pos3 = {-5, 0.5f, -2};
-  create_animal(&g->world, animal_pos1, &g->ball, 2.0f);
-  create_animal(&g->world, animal_pos2, &g->ball, 1.5f);
-  create_animal(&g->world, animal_pos3, &g->ball, 2.5f);
- 
+  create_animal(&g->world, animal_pos1, &g->fox, 2.0f);
+  create_animal(&g->world, animal_pos2, &g->fox, 1.5f);
+  create_animal(&g->world, animal_pos3, &g->fox, 2.5f);
+
   // lighting
   const float ambient[4] = {0.15f, 0.15f, 0.18f, 1.0f};
 
@@ -85,6 +86,7 @@ bool game_init(Game *g) {
   lighting_apply_to_model(&g->lights, &g->wall.model, (Color){222,184,135,255});
   lighting_apply_to_model(&g->lights, &g->tree.model, (Color){222,184,135,255});
   lighting_apply_to_model(&g->lights, &g->ball.model, (Color){150,175,220,255});
+  lighting_apply_to_model(&g->lights, &g->fox.model, (Color){150,175,220,255});
 
   return true;
 }

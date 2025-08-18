@@ -57,4 +57,3 @@ Event make_event(EventType type) {
   e.tick = current_tick;
   return e;
 }
-

@@ -13,6 +13,7 @@ typedef struct {
   ModelAsset wall;
   ModelAsset tree;
   ModelAsset ball;
+  ModelAsset fox;
 
   ModelAsset floor_gen;
   ModelAsset wall_gen;

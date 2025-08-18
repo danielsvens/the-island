@@ -2,8 +2,8 @@
 #include <raylib.h>
 
 typedef struct {
-    Model model;
-    BoundingBox local_bbox;  // Cached bounding box in model space
+  Model model;
+  BoundingBox local_bbox;  // Cached bounding box in model space
 } ModelAsset;
 
 Texture2D load_atlas(const char *path);
