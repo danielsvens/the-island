@@ -7,6 +7,11 @@
 #include <stdlib.h>
 #include <math.h>
 
+static inline float v3_len2(Vector3 v) { return v.x * v.x + v.y * v.y + v.z * v.z; }
+static inline Vector3 v3_add(Vector3 a, Vector3 b){ return (Vector3){a.x + b.x,a.y + b.y,a.z + b.z}; }
+static inline Vector3 v3_sub(Vector3 a, Vector3 b){ return (Vector3){a.x - b.x,a.y - b.y,a.z - b.z}; }
+static inline Vector3 v3_scale(Vector3 a, float s){ return (Vector3){a.x * s,a.y * s,a.z * s}; }
+
 void animal_init(Animal *animal, Vector3 position, float max_speed) {
   animal->pos = position;
   animal->vel = (Vector3){0, 0, 0};
@@ -95,14 +100,12 @@ void animal_handle_ball_collision(Animal *animal, GameObject *ball_obj) {
 }
 
 bool animal_check_collision(const Animal *animal, Vector3 position, const GameWorld *world) {
-  // Check collision with world boundaries (simple rectangular boundary)
   float boundary_size = 8.0f;
   if (position.x < -boundary_size || position.x > boundary_size ||
     position.z < -boundary_size || position.z > boundary_size) {
     return true;
   }
 
-  // Create a bounding box for the animal at the test position
   BoundingBox animal_bbox = {
     .min = { position.x - animal->radius, position.y - animal->radius, position.z - animal->radius },
     .max = { position.x + animal->radius, position.y + animal->radius, position.z + animal->radius }
@@ -112,7 +115,6 @@ bool animal_check_collision(const Animal *animal, Vector3 position, const GameWo
     const GameObject *obj = &world->objects[i];
     if (!obj->active) continue;
 
-    // Skip if this is the same animal (avoid self-collision)
     if (obj->type == OBJECT_ANIMAL && &obj->data.animal == animal) {
       continue;
     }
@@ -231,7 +233,8 @@ void animal_update(Animal *animal, float dt, const GameWorld *world) {
 
   bool blocked = false;
   for (int i = 0; i < world->object_count; i++) {
-    GameObject *obj = &((GameWorld*)world)->objects[i];
+    //GameObject *obj = &((GameWorld*)world)->objects[i];
+    const GameObject *obj = &world->objects[i];
     if (!obj->active) continue;
 
     // Skip self
@@ -277,5 +280,5 @@ void animal_update(Animal *animal, float dt, const GameWorld *world) {
     animal_change_state(animal, AI_STATE_AVOIDING_OBSTACLE);
   }
 
-  animal->pos.y = 0.5f;
+  animal->pos.y = 0.0f;
 }

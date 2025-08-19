@@ -27,29 +27,29 @@ int main(void) {
   TraceLog(LOG_INFO, "Model has %d meshes", g.floor.model.meshCount);
   TraceLog(LOG_INFO, "Model has %d materials", g.floor.model.materialCount);
 
-  float accumulator = 0.0f;
-  float last_time = GetTime();
+  double accumulator = 0.0;
+  double last_time = GetTime();
 
   while (!WindowShouldClose()) {
-    float current_time = GetTime();
-    float frame_time = current_time - last_time;
+    double current_time = GetTime();
+    double frame_time = current_time - last_time;
     last_time = current_time;
-    
+
     // Cap frame time to prevent spiral of death
-    if (frame_time > 0.25f) frame_time = 0.25f;
-    
+    if (frame_time > 0.25) frame_time = 0.25;
+
     accumulator += frame_time;
 
     while (accumulator >= TICK_DURATION) {
       input_collect_events();
-      
+
       game_update(&g, TICK_DURATION);
       if (g.should_quit) break;
-      
+
       increment_tick();
       accumulator -= TICK_DURATION;
     }
-    
+
     if (g.should_quit) break;
 
     BeginDrawing();

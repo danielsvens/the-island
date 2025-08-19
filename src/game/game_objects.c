@@ -137,7 +137,7 @@ static void handle_ball_collision(GameObject *ball1, GameObject *ball2) {
     Vector3 separation = Vector3Scale(collision_normal, overlap * 0.5f);
     ball1->position = Vector3Subtract(ball1->position, separation);
     ball2->position = Vector3Add(ball2->position, separation);
-  }
+  } 
 }
 
 static void handle_ball_static_collision(GameObject *ball, GameObject *static_obj) {
@@ -216,8 +216,9 @@ void update_physics(GameWorld *world, float dt) {
           obj->position.y = ground_y + ball->radius;
           ball->velocity.y = -ball->velocity.y * ball->bounce_factor;
 
-          ball->velocity.x *= (1.0f - ball->friction * dt);
-          ball->velocity.z *= (1.0f - ball->friction * dt);
+          float k = expf(-ball->friction * dt);
+          ball->velocity.x *= k;
+          ball->velocity.z *= k;
         }
 
         break;
@@ -225,6 +226,9 @@ void update_physics(GameWorld *world, float dt) {
       case OBJECT_ANIMAL:
         animal_update(&obj->data.animal, dt, world);
         obj->position = obj->data.animal.pos;
+        break;
+      case OBJECT_STATIC:
+      case OBJECT_TREE:
         break;
     }
   }

@@ -1,4 +1,3 @@
-// Example demonstrating tick-based event scheduling
 #include "event_queue.h"
 #include <stdio.h>
 
@@ -11,7 +10,7 @@ void schedule_delayed_action(ActionId action, uint64_t delay_ticks) {
 
   // In a real implementation, you'd add this to a separate scheduled events queue
   // For demonstration purposes, we're showing the concept
-  printf("Scheduling action %d to happen at tick %llu (current: %llu)\n", 
+  printf("Scheduling action %d to happen at tick %lu (current: %lu)\n", 
          action, e.tick, get_current_tick());
 }
 
@@ -30,7 +29,7 @@ void process_scheduled_events(void) {
     e.action.pressed = true;
     push_event(&e);
     last_scheduled_event = current_tick;
-    printf("Triggered scheduled event at tick %llu\n", current_tick);
+    printf("Triggered scheduled event at tick %lu\n", current_tick);
   }
 }
 
@@ -47,7 +46,7 @@ static bool replaying = false;
 
 void start_recording(void) {
   replay_count = 0;
-  printf("Started recording events at tick %llu\n", get_current_tick());
+  printf("Started recording events at tick %lu\n", get_current_tick());
 }
 
 void record_event(const Event *e) {
@@ -61,7 +60,7 @@ void record_event(const Event *e) {
 void start_replay(void) {
   replay_index = 0;
   replaying = true;
-  printf("Started replaying %d events from tick %llu\n", replay_count, get_current_tick());
+  printf("Started replaying %d events from tick %lu\n", replay_count, get_current_tick());
 }
 
 void replay_events(void) {
