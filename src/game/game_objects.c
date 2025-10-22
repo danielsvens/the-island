@@ -68,6 +68,8 @@ int create_ball(GameWorld *world, Vector3 position, ModelAsset *model,
   obj->data.ball.bounce_factor = bounce;
   obj->data.ball.friction = friction;
   obj->data.ball.use_gravity = true;
+  obj->data.ball.orientation = QuaternionIdentity();
+  obj->data.ball.ang_vel = (Vector3) { 0, 0, 0 };
 
   return id;
 }

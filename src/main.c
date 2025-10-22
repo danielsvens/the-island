@@ -13,7 +13,7 @@
 #define TICK_DURATION (1.0f / TICK_RATE)
 
 int main(void) {
-  SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_HIGHDPI);
+  SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_HIGHDPI | FLAG_WINDOW_RESIZABLE);
   InitWindow(WIN_WIDTH, WIN_HEIGHT, WIN_TITLE);
   SetTargetFPS(60);
   DisableCursor();

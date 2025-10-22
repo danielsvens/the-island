@@ -24,6 +24,9 @@ typedef struct {
   float friction;
   float mass;
   bool use_gravity;
+
+  Quaternion orientation;
+  Vector3 ang_vel;
 } BallData;
 
 typedef struct {

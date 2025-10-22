@@ -1,7 +1,5 @@
-
 #include "game.h"
 #include "../core/event_queue.h"
-#include "../core/input.h"
 #include "assets.h"
 #include "scene.h"
 #include <raylib.h>
@@ -68,7 +66,7 @@ bool game_init(Game *g) {
   create_ball(&g->world, ball_pos, &g->ball,  0.5f, 1.0f, 0.7f, 0.95f);
 
   // Create some wandering animals
-  Vector3 animal_pos1 = {-3, -1.0f, 2};
+  Vector3 animal_pos1 = {-3, -0.0f, 2};
   Vector3 animal_pos2 = {2, -1.0f, -4};
   Vector3 animal_pos3 = {-5, -1.0f, -2};
   create_animal(&g->world, animal_pos1, &g->fox, 2.0f);

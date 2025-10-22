@@ -50,10 +50,6 @@ void increment_tick(void) {
   current_tick++;
 }
 
-
 Event make_event(EventType type) {
-  Event e = {0};
-  e.type = type;
-  e.tick = current_tick;
-  return e;
+  return (Event) { .type = type, .tick = current_tick };
 }
